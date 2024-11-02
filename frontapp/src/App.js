@@ -12,6 +12,7 @@ function App() {
     return (
         <div>
             <h1>React Frontend</h1>
+            <button onclick="alert('Hello, World!')">Click Me!</button>  
             <p>{message}</p>
         </div>
     );
