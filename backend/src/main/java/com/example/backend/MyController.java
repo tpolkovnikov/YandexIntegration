@@ -1,10 +1,18 @@
 package com.example.backend;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import java.nio.file.Path;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 public class MyController {
@@ -39,4 +47,35 @@ public class MyController {
             this.token = token;
         }
     }
+    
+
+    @PostMapping("/upload")
+    public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
+        System.out.println("Получен запрос на загрузку файла: " + file.getOriginalFilename());
+
+        
+        
+        try {
+            
+            Path uploadPath = Paths.get("D:/Education/repository/YandexIntegration/backend/src/uploads");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+                System.out.println("Папка uploads была создана.");
+            }
+    
+            String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+            Path filePath = uploadPath.resolve(fileName);
+            System.out.println("Путь для сохранения файла: " + filePath.toAbsolutePath());
+    
+            file.transferTo(filePath.toFile());
+            System.out.println("Файл успешно сохранен: " + filePath.toString());
+    
+            return ResponseEntity.ok("Файл успешно загружен: " + fileName);
+        } catch (IOException e) {
+            System.err.println("Ошибка при загрузке файла: " + e.getMessage());
+            return ResponseEntity.status(500).body("Ошибка при загрузке файла: " + e.getMessage());
+        }
+    }
+    
+
 }

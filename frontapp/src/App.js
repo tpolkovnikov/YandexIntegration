@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import YandexAuth from "./YandexAuth";
 import AuthCallback from "./AuthCallback";
+import FileUpload from "./FileUpload";
 import './App.css';
 
 function App() {
@@ -26,11 +27,8 @@ function App() {
     setPermissions({ ...permissions, [e.target.name]: e.target.checked });
   };
 
-  // нажатие на яндекс
   const attachToYandex = (fileName) => {
     fetch('http://localhost:8080/api/toYandex')
-    
-
     console.log(`Attach ${fileName} to Yandex Disk`);
   };
 
@@ -41,8 +39,6 @@ function App() {
   const deleteFile = (fileName) => {
     setFiles(files.filter((file) => file.name !== fileName));
   };
-
-
 
   return (
     <div className="App">
@@ -55,15 +51,17 @@ function App() {
           </Routes>
         </Router>
 
+        <FileUpload />
+        
         {/* File Upload and Display Section */}
         <div className="file-upload-section">
+          <FileUpload /> {/* Вставьте компонент FileUpload */}
           <input type="file" multiple onChange={handleFileUpload} />
           <div className="file-list">
             {files.map((file, index) => (
               <div key={index} className="file-item">
                 <span className="file-name">{file.name}</span>
                 <span className="file-date">{file.date}</span>
-                {/* Conditional buttons */}
                 {permissions.attachYandex && (
                   <button onClick={() => attachToYandex(file.name)}>📁 Yandex</button>
                 )}
