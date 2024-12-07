@@ -1,4 +1,7 @@
 import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import YandexAuth from "./YandexAuth";
+import AuthCallback from "./AuthCallback";
 import './App.css';
 
 function App() {
@@ -23,7 +26,11 @@ function App() {
     setPermissions({ ...permissions, [e.target.name]: e.target.checked });
   };
 
+  // нажатие на яндекс
   const attachToYandex = (fileName) => {
+    fetch('http://localhost:8080/api/toYandex')
+    
+
     console.log(`Attach ${fileName} to Yandex Disk`);
   };
 
@@ -35,9 +42,19 @@ function App() {
     setFiles(files.filter((file) => file.name !== fileName));
   };
 
+
+
   return (
     <div className="App">
       <div className="main-container">
+
+        <Router>
+          <Routes>
+            <Route path="/" element={<YandexAuth />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+          </Routes>
+        </Router>
+
         {/* File Upload and Display Section */}
         <div className="file-upload-section">
           <input type="file" multiple onChange={handleFileUpload} />
