@@ -52,17 +52,16 @@ public class MyController {
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
         System.out.println("Получен запрос на загрузку файла: " + file.getOriginalFilename());
-
-        
-        
         try {
             
-            Path uploadPath = Paths.get("D:/Education/repository/YandexIntegration/backend/src/uploads");
+            // Получение пути относительно корневой папки приложения
+            Path uploadPath = Paths.get(System.getProperty("user.dir"), "src", "uploads");
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
                 System.out.println("Папка uploads была создана.");
             }
     
+            
             String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
             Path filePath = uploadPath.resolve(fileName);
             System.out.println("Путь для сохранения файла: " + filePath.toAbsolutePath());
@@ -76,6 +75,4 @@ public class MyController {
             return ResponseEntity.status(500).body("Ошибка при загрузке файла: " + e.getMessage());
         }
     }
-    
-
 }
