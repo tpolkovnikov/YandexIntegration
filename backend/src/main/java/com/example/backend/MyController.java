@@ -1,9 +1,10 @@
 package com.example.backend;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.nio.file.Path;
 
@@ -44,8 +45,6 @@ public class MyController {
 
     // тут хранится OAuth-токен 
     String token;
-
-    private final String UPLOAD_DIR = "src/uploads";
 
     public static class TokenRequest {
         private String token;
@@ -119,6 +118,22 @@ public class MyController {
             System.err.println("Ошибка при загрузке файла: " + e.getMessage());
             return ResponseEntity.status(500).body("Ошибка при загрузке файла: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/api/files")
+    public List<String> getUploadedFiles() {
+        Path UPLOAD_DIR = Paths.get(System.getProperty("user.dir"), "src", "uploads");
+        File dir = UPLOAD_DIR.toFile();
+        File[] files = dir.listFiles();
+        List<String> fileNames = new ArrayList<>();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    fileNames.add(file.getName());
+                }
+            }
+        }
+        return fileNames;
     }
 
     // запрос о диске

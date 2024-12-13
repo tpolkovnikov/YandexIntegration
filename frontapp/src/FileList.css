@@ -1,0 +1,27 @@
+/* Основные стили для списка файлов */
+ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .file-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .file-item span {
+    margin-right: 10px;
+    flex-grow: 1;
+  }
+  
+  .buttons-container {
+    display: flex;
+    gap: 10px; /* Расстояние между кнопками */
+  }
+  
+  button {
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  

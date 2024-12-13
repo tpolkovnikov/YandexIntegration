@@ -205,12 +205,11 @@ public class YandexClasses {
             if (downloadUrl == null || downloadUrl.isEmpty()) {
                 throw new IOException("Не удалось получить ссылку на скачивание");
             }
-
             
             System.out.println("tyt1");
             System.out.println("Download URL: " + downloadUrl);
 
-            //Далее идёт скачивание по ссылке - почему-то неправильно
+            //Далее идёт скачивание по ссылке 
 
             try {
                 // Декодирование URL

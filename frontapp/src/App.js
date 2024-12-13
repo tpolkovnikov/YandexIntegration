@@ -1,13 +1,12 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import YandexAuth from "./YandexAuth";
 import AuthCallback from "./AuthCallback";
 import FileUpload from "./FileUpload";
 import YandexDisk from "./YandexDisk";
 import './App.css';
-import FileFetcher from './FileFetcher';
 import AppFolderFiles from './AppFolder';
-import CreateFolder from './CreateFolder';
+import FileList from './FileList';
 
 
 function App() {
@@ -15,7 +14,7 @@ function App() {
 
   return (
     <div className="App">
-      <div className="main-container">
+      <div className="app-container">
 
         <Router>
           <Routes>
@@ -23,16 +22,17 @@ function App() {
             <Route path="/auth/callback" element={<AuthCallback />} />
           </Routes>
         </Router>
-
-        <FileUpload />
-    
         <YandexDisk />
-
         <AppFolderFiles/>
-
-
-
       </div>
+
+
+      
+      <div className="main-container">
+        <FileUpload />
+        <FileList/>
+      </div>
+      
     </div>
   );
 }
