@@ -5,7 +5,7 @@ const YandexDisk = () => {
   const [error, setError] = useState(null);
 
   const handleGetDiskData = () => {
-    fetch("http://localhost:8080/YandexDisk", {
+    fetch("http://localhost:8080/Yandex/Disk", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

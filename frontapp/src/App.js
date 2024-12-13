@@ -5,6 +5,9 @@ import AuthCallback from "./AuthCallback";
 import FileUpload from "./FileUpload";
 import YandexDisk from "./YandexDisk";
 import './App.css';
+import FileFetcher from './FileFetcher';
+import AppFolderFiles from './AppFolder';
+import CreateFolder from './CreateFolder';
 
 
 function App() {
@@ -24,6 +27,11 @@ function App() {
         <FileUpload />
     
         <YandexDisk />
+
+        <FileFetcher />
+        <AppFolderFiles/>
+
+
 
       </div>
     </div>

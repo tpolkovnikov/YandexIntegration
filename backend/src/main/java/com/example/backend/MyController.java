@@ -3,38 +3,49 @@ package com.example.backend;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
+import java.nio.file.StandardCopyOption;
+import java.util.Map;
 import java.nio.file.Path;
 
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.backend.YandexClasses.Disk;
+import com.example.backend.YandexClasses.YandexAppFolder;
+import com.example.backend.YandexClasses.YandexCreateFolder;
+import com.example.backend.YandexClasses.YandexDiskFiles;
 import com.example.backend.YandexClasses.YandexDiskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.backend.TokenReader ; 
 
+import reactor.core.publisher.Mono;
 
+import com.example.backend.TokenReader ;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+
+import java.io.*;
+import java.net.URL;
+
+
+
 
 
 
 @RestController
 public class MyController {
 
-    static TokenReader temp = new TokenReader();
-
     // тут хранится OAuth-токен 
     String token;
 
-    
+    private final String UPLOAD_DIR = "src/uploads";
+
     public static class TokenRequest {
         private String token;
 
@@ -110,11 +121,11 @@ public class MyController {
     }
 
     // запрос о диске
-    @GetMapping("/YandexDisk")
+    @GetMapping("/Yandex/Disk")
     public ResponseEntity<?> YandexDisk() {
 
         try {
-            token = temp.getOAuthToken("token.json");
+            token = TokenReader.getOAuthToken("token.json");
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -144,4 +155,43 @@ public class MyController {
             return ResponseEntity.status(500).body("Не удалось получить данные о диске: " + e.getMessage());
         }
     }
+
+    @GetMapping("/yandex/files")
+    public Mono<ResponseEntity<String>> getFiles(
+            @RequestParam(required = false) Integer limit,
+            @RequestParam(required = false) String mediaType,
+            @RequestParam(required = false) Integer offset,
+            @RequestParam(required = false) String fields,
+            @RequestParam(required = false) String previewSize,
+            @RequestParam(required = false) Boolean previewCrop) throws IOException{
+
+        YandexDiskFiles yandexDiskFiles = new YandexDiskFiles();
+        String token = TokenReader.getOAuthToken("token.json");
+
+        return yandexDiskFiles.fetchFiles(token, limit, mediaType, offset, fields, previewSize, previewCrop)
+                .map(response -> ResponseEntity.ok().body(response))
+                .onErrorResume(e -> Mono.just(ResponseEntity.status(500).body("Error: " + e.getMessage())));
+    }
+
+    // получение файлов из папки приложения
+    @GetMapping("/yandex/appfiles")
+    public String getAppFolderFiles() throws IOException {
+        YandexAppFolder yandexAppFolder = new YandexAppFolder();
+        String token = TokenReader.getOAuthToken("token.json");
+        return yandexAppFolder.getAppFolderFiles(token);
+    }
+
+    // создание папки
+    @PostMapping("yandex/folder/create")
+    public String createFolder(@RequestParam String folderName) throws IOException {
+        YandexCreateFolder yandexCreateFolder = new YandexCreateFolder();
+        String token = TokenReader.getOAuthToken("token.json");
+        return yandexCreateFolder.createFolder(token, folderName);
+    }
+    
+
+
+
+
+
 }
