@@ -1,5 +1,2 @@
-com\example\backend\Application.class
-com\example\backend\MyController$TokenRequest.class
-com\example\backend\MyController.class
 com\example\backend\CorsConfig$1.class
 com\example\backend\CorsConfig.class

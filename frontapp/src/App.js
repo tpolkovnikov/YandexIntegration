@@ -3,9 +3,12 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import YandexAuth from "./YandexAuth";
 import AuthCallback from "./AuthCallback";
 import FileUpload from "./FileUpload";
+import YandexDisk from "./YandexDisk";
 import './App.css';
 
+
 function App() {
+
 
   return (
     <div className="App">
@@ -19,11 +22,13 @@ function App() {
         </Router>
 
         <FileUpload />
-
+    
+        <YandexDisk />
 
       </div>
     </div>
   );
 }
+
 
 export default App;
