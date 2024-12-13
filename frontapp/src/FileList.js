@@ -22,9 +22,17 @@ function FileList() {
     console.log(`Delete file: ${fileName}`);
   };
 
-  const handleDownload = (fileName) => {
-    // Логика загрузки файла на диск
-    console.log(`Download file: ${fileName}`);
+  const handleLoading = async (fileName) => {
+    const filePath = `${fileName}`; 
+    try {
+      const response = await fetch(`http://localhost:8080/yandex/upload?filePath=${encodeURIComponent(filePath)}`, {
+        method: "POST",
+      });
+      const result = await response.text();
+      alert(result);
+    } catch (error) {
+      alert("Ошибка при загрузке файла: " + error.message);
+    }
   };
 
   return (
@@ -35,8 +43,8 @@ function FileList() {
           <li key={index} className="file-item">
             <span>{file}</span>
             <div className="buttons-container">
-              <button onClick={() => handleDownload(file)}>Download</button>
-              <button onClick={() => handleDelete(file)}>Delete</button>
+              <button onClick={() => handleLoading(file)}>Загрузить на яндекс диск</button>
+              <button onClick={() => handleDelete(file)}>Удалить</button>
             </div>
           </li>
         ))}

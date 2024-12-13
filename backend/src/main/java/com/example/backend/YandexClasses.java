@@ -8,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.CountDownLatch;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -288,6 +289,96 @@ public class YandexClasses {
         }
         return null; // Если имя файла не найдено в заголовке
     }
+
+    
+
+    public static class YandexLoading{
+
+        private final WebClient webClient;
+
+        public YandexLoading() {
+            this.webClient = WebClient.builder()
+                .baseUrl("https://cloud-api.yandex.net/v1/disk")
+                .build();
+        }   
+            
+            
+        // filePath - имя загружаемого файла
+        public void loadingFile(String filePath) throws IOException {
+            // Получение OAuth токена
+            String token = TokenReader.getOAuthToken("token.json");
+            
+            // Закодировать путь, но оставить символ '%' нетронутым
+            //String encodedPath = filePath.replace("%25", "%"); // Заменяем только проценты
+            String encodedFilePath = URLEncoder.encode(filePath, "UTF-8");
+
+            System.out.println(encodedFilePath);
+
+            // Формирование запроса для получения ссылки на скачивание
+            String loadingUrl = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                    .path("/resources/upload")
+                    .queryParam("path", "GreenData/" + filePath)
+                    .build())
+                    .header("Authorization", "OAuth " + token)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .map(response -> {
+                    // Извлечение ссылки из JSON-ответа
+                    int urlStart = response.indexOf("\"href\":\"") + 8;
+                    int urlEnd = response.indexOf("\"", urlStart);
+                    String url = response.substring(urlStart, urlEnd);
+                    try {
+                        // Декодируем URL, чтобы устранить двойное кодирование
+                        return URLDecoder.decode(url, "UTF-8");
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException("Ошибка при декодировании URL", e);
+                    }
+                })
+                .block();
+
+            if (loadingUrl == null || loadingUrl.isEmpty()) {
+                throw new IOException("Не удалось получить ссылку на загрузка");
+            }
+
+            //System.out.println(loadingUrl);
+            
+            try {
+                // Получаем файл из папки src/uploads
+                File file = new File("src/uploads/" + filePath);
+                if (!file.exists()) {
+                    System.out.println("ошибка файл не найден: " + filePath);
+                }
+
+                // Читаем содержимое файла в байты
+                byte[] fileContent = Files.readAllBytes(file.toPath());
+
+                // Отправляем файл на указанный URL с использованием PUT
+                ResponseEntity<Void> response = webClient.put()
+                    .uri(loadingUrl)
+                    .bodyValue(fileContent) // Отправляем содержимое файла
+                    .retrieve()
+                    .toBodilessEntity()
+                    .block();
+
+                // Проверяем успешность загрузки
+                if (response != null && response.getStatusCode() == HttpStatus.CREATED) {
+                    System.out.println("sucsess: " + filePath);
+                } else {
+                    System.out.println("no sucsess: " + filePath);
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.out.println("IOException: " + filePath);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Exception: " + filePath);
+            }
+        }
+
+    }
+
 
 
     // класс для десериализации json-ответа

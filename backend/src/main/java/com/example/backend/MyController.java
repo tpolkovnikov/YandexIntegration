@@ -21,6 +21,7 @@ import com.example.backend.YandexClasses.Disk;
 import com.example.backend.YandexClasses.YandexAppFolder;
 import com.example.backend.YandexClasses.YandexCreateFolder;
 import com.example.backend.YandexClasses.YandexDownload;
+import com.example.backend.YandexClasses.YandexLoading;
 import com.example.backend.YandexClasses.YandexDiskFiles;
 import com.example.backend.YandexClasses.YandexDiskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -211,6 +212,18 @@ public class MyController {
         YandexDownload yandexDonwload = new YandexDownload();
         try {
             yandexDonwload.downloadFile(filePath);
+            return "Файл успешно загружен!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Ошибка при загрузке файла: " + e.getMessage();
+        }
+    }
+
+    @PostMapping("/yandex/upload")
+    public String loadingFile(@RequestParam String filePath) {
+        YandexLoading yandexLoading = new YandexLoading();
+        try {
+            yandexLoading.loadingFile(filePath);
             return "Файл успешно загружен!";
         } catch (Exception e) {
             e.printStackTrace();
