@@ -81,9 +81,6 @@ public class MyController {
         return ResponseEntity.ok("Токен сохранен");
     }
 
-
-
-    
     // загрузка на бек в папку
     @PostMapping("/upload")
     public ResponseEntity<String> handleFileUpload(@RequestParam("file") MultipartFile file) {
@@ -147,46 +144,4 @@ public class MyController {
             return ResponseEntity.status(500).body("Не удалось получить данные о диске: " + e.getMessage());
         }
     }
-
-
-    @GetMapping("/YandexTest")
-    public void YandexTest() {
-        
-    }
-
-
-    private static final String TOKEN_URL = "https://oauth.yandex.ru/token";
-    private static final String CLIENT_ID = "62b07b7a758d421eab2f23e88712d270";
-    private static final String CLIENT_SECRET = "9a8cc756e817471ca03ae0a7549de4b8";
-
-    @GetMapping("/handleOAuth")
-    public ResponseEntity<String> handleOAuth(@RequestParam("code") String code) {
-        try {
-            // Создаем параметры для запроса
-            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-            params.add("grant_type", "authorization_code");
-            params.add("code", code);
-            params.add("client_id", CLIENT_ID);
-            params.add("client_secret", CLIENT_SECRET);
-
-            // Устанавливаем заголовки
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-            // Создаем HTTP-запрос
-            HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
-
-            // Выполняем POST-запрос через RestTemplate
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.postForEntity(TOKEN_URL, request, String.class);
-
-            // Возвращаем результат
-            return ResponseEntity.ok(response.getBody());
-        } catch (Exception e) {
-            // Обработка ошибок
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
-    }
-
-
 }
