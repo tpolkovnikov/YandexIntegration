@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.backend.YandexClasses.Disk;
 import com.example.backend.YandexClasses.YandexAppFolder;
 import com.example.backend.YandexClasses.YandexCreateFolder;
+import com.example.backend.YandexClasses.YandexDownload;
 import com.example.backend.YandexClasses.YandexDiskFiles;
 import com.example.backend.YandexClasses.YandexDiskService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -188,10 +189,19 @@ public class MyController {
         String token = TokenReader.getOAuthToken("token.json");
         return yandexCreateFolder.createFolder(token, folderName);
     }
+
     
-
-
-
+    @PostMapping("yandex/download")
+    public String downloadFile(@RequestParam String filePath) {
+        YandexDownload yandexDonwload = new YandexDownload();
+        try {
+            yandexDonwload.downloadFile(filePath);
+            return "Файл успешно загружен!";
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Ошибка при загрузке файла: " + e.getMessage();
+        }
+    }
 
 
 }

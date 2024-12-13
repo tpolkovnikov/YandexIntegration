@@ -28,7 +28,6 @@ function App() {
     
         <YandexDisk />
 
-        <FileFetcher />
         <AppFolderFiles/>
 
 

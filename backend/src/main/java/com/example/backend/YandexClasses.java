@@ -1,17 +1,42 @@
 package com.example.backend;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.example.backend.YandexClasses.Disk;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import reactor.core.publisher.Mono;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.io.*;
+
 
 // потом объединить всё в 1 класс
 public class YandexClasses {
+
+
+    public static String generateYandexDownloadLink(String filePath) {
+        // Заменяем символы, которые должны остаться в пути
+        String encodedPath = filePath.replace("/", "%2F");
+        // Формируем правильный URL
+        return encodedPath;
+    }
 
     // для получения данных о диске
     // сделалти статическим - чтобы спокойно создавать экземпляры в других файлах (так как является вложенным классом (класс в классе))
@@ -134,6 +159,137 @@ public class YandexClasses {
         }
     }
 
+    public static class YandexDownload {
+
+        private final WebClient webClient;
+
+        public YandexDownload() {
+            this.webClient = WebClient.builder()
+                    .baseUrl("https://cloud-api.yandex.net/v1/disk")
+                    .build();
+        }
+
+        public void downloadFile(String filePath) throws IOException {
+            // Получение OAuth токена
+            String token = TokenReader.getOAuthToken("token.json");
+            
+            // Закодировать путь, но оставить символ '%' нетронутым
+            //String encodedPath = filePath.replace("%25", "%"); // Заменяем только проценты
+            String encodedFilePath = URLEncoder.encode(filePath, "UTF-8");
+
+            System.out.println(encodedFilePath);
+
+            // Формирование запроса для получения ссылки на скачивание
+            String downloadUrl = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/resources/download")
+                        .queryParam("path", filePath)
+                        .build())
+                    .header("Authorization", "OAuth " + token)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .map(response -> {
+                        // Извлечение ссылки из JSON-ответа
+                        int urlStart = response.indexOf("\"href\":\"") + 8;
+                        int urlEnd = response.indexOf("\"", urlStart);
+                        String url = response.substring(urlStart, urlEnd);
+                        try {
+                            // Декодируем URL, чтобы устранить двойное кодирование
+                            return URLDecoder.decode(url, "UTF-8");
+                        } catch (UnsupportedEncodingException e) {
+                            throw new RuntimeException("Ошибка при декодировании URL", e);
+                        }
+                    })
+                    .block();
+
+            if (downloadUrl == null || downloadUrl.isEmpty()) {
+                throw new IOException("Не удалось получить ссылку на скачивание");
+            }
+
+            
+            System.out.println("tyt1");
+            System.out.println("Download URL: " + downloadUrl);
+
+            //Далее идёт скачивание по ссылке - почему-то неправильно
+
+            try {
+                // Декодирование URL
+                String decodedUrl = java.net.URLDecoder.decode(downloadUrl, "UTF-8");
+
+                // Получаем имя файла из параметра filename в URL
+                String fileName = extractFileNameFromUrl(decodedUrl);
+                if (fileName == null || fileName.isEmpty()) {
+                    System.err.println("Unable to determine file name from URL.");
+                    return;
+                }
+                //String fileName = "Zombatar_1.jpg"; // Имя файла
+    
+                // Папка для сохранения
+                Path saveDir = Paths.get("D:/Education/repository/YandexIntegration/backend/src/uploads");
+                Path pfilePath = saveDir.resolve(fileName);
+    
+                // Создаем папку, если она не существует
+                Files.createDirectories(saveDir);
+    
+                // Инициализация подключения
+                URL url = new URL(decodedUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setDoInput(true);
+                connection.connect();
+    
+                // Проверка кода ответа
+                int responseCode = connection.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
+                    System.out.println("Connection successful. Starting file download...");
+    
+                    // Скачиваем файл
+                    try (InputStream inputStream = connection.getInputStream();
+                         FileOutputStream outputStream = new FileOutputStream(pfilePath.toFile())) {
+    
+                        byte[] buffer = new byte[4096];
+                        int bytesRead;
+                        while ((bytesRead = inputStream.read(buffer)) != -1) {
+                            outputStream.write(buffer, 0, bytesRead);
+                        }
+    
+                        System.out.println("File saved successfully to: " + pfilePath);
+                    }
+                } else {
+                    System.err.println("Failed to download file. HTTP Response Code: " + responseCode);
+                }
+    
+                connection.disconnect();
+    
+            } catch (Exception e) {
+                System.err.println("Error occurred: " + e.getMessage());
+                e.printStackTrace();
+            }    
+        }
+    }
+    
+    // Извлечение имени файла из URL, если оно присутствует в параметре 'filename'
+    private static String extractFileNameFromUrl(String url) {
+        Pattern pattern = Pattern.compile("filename=([^&]*)");
+        Matcher matcher = pattern.matcher(url);
+        if (matcher.find()) {
+            return matcher.group(1);
+        }
+        return null; // Если имя файла не найдено в URL
+    }
+
+    // Извлечение имени файла из заголовка Content-Disposition
+    private static String getFileNameFromContentDisposition(HttpURLConnection connection) {
+        String contentDisposition = connection.getHeaderField("Content-Disposition");
+        if (contentDisposition != null && contentDisposition.contains("filename=")) {
+            int index = contentDisposition.indexOf("filename=");
+            if (index > 0) {
+                return contentDisposition.substring(index + 9).replaceAll("\"", "");
+            }
+        }
+        return null; // Если имя файла не найдено в заголовке
+    }
+
 
     // класс для десериализации json-ответа
     public static class Disk {
@@ -206,6 +362,36 @@ public class YandexClasses {
     }
     }   
 
+    // класс для обработки ответа скачивания
+    public class YandexDownloadResponse {
+        private String href;
+        private String method;
+        private boolean templated;
+    
+        public String getHref() {
+            return href;
+        }
+    
+        public void setHref(String href) {
+            this.href = href;
+        }
+    
+        public String getMethod() {
+            return method;
+        }
+    
+        public void setMethod(String method) {
+            this.method = method;
+        }
+    
+        public boolean isTemplated() {
+            return templated;
+        }
+    
+        public void setTemplated(boolean templated) {
+            this.templated = templated;
+        }
+    }
 
 
 
