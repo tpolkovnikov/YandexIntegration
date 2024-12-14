@@ -1,4 +1,5 @@
 import React from "react";
+import './App.css';
 
 const YandexAuth = () => {
   const clientId = "62b07b7a758d421eab2f23e88712d270"; // Вставьте ваш client_id
@@ -11,7 +12,7 @@ const YandexAuth = () => {
   
   return (
     <div>
-      <button onClick={handleLogin}>Войти через Яндекс</button>
+      <button className="button-main" onClick={handleLogin}>Войти через Яндекс</button>
     </div>
   );
 };

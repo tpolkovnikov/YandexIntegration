@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.nio.file.Path;
 
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,11 +37,6 @@ import org.springframework.http.*;
 
 import java.io.*;
 import java.net.URL;
-
-
-
-
-
 
 @RestController
 public class MyController {
@@ -135,6 +132,25 @@ public class MyController {
             }
         }
         return fileNames;
+    }
+
+    @DeleteMapping("api/files/{fileName}")
+    public ResponseEntity<String> deleteFile(@PathVariable String fileName) {
+        Path filePath = Paths.get(System.getProperty("user.dir"), "src", "uploads", fileName);
+
+        try {
+            // Проверка, существует ли файл
+            if (Files.exists(filePath)) {
+                // Удаление файла
+                Files.delete(filePath);
+                return ResponseEntity.ok("Файл успешно удален");
+            } else {
+                return ResponseEntity.status(404).body("Файл не найден");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Ошибка при удалении файла");
+        }
     }
 
     // запрос о диске

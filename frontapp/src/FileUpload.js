@@ -31,9 +31,11 @@ function FileUpload() {
     }
   };
 
+  
+
   return (
     <div>
-      <button onClick={handleClick}>Выбрать файл для загрузки</button>
+      <button className="button-main" onClick={handleClick}>+</button>
       <input
         type="file"
         ref={fileInputRef}
